@@ -1,22 +1,23 @@
 const express = require('express');
-const bodyParser = require('body-parser');
-const fs = require('fs');
-const path = require('path');
-
+const fs = require('fs'); // Importar o módulo fs para manipulação de arquivos
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
-app.use(bodyParser.json({ limit: '10mb' }));
-app.use(express.static(path.join(__dirname)));
+app.use(express.json());
 
+// Endpoint para receber e salvar fotos
 app.post('/enviar-foto', (req, res) => {
-    const imgData = req.body.foto.replace(/^data:image\/png;base64,/, "");
-    fs.writeFile(`foto-${Date.now()}.png`, imgData, 'base64', (err) => {
+    const { foto } = req.body;
+    const base64Data = foto.replace(/^data:image\/png;base64,/, "");
+    const timestamp = Date.now();
+    const filePath = `foto-${timestamp}.png`;
+
+    fs.writeFile(filePath, base64Data, 'base64', (err) => {
         if (err) {
             console.error('Erro ao salvar a foto:', err);
-            return res.status(500).json({ message: 'Erro ao salvar a foto' });
+            return res.status(500).send('Erro ao salvar a foto');
         }
-        res.json({ message: 'Foto salva com sucesso!' });
+        res.status(200).send('Foto salva com sucesso');
     });
 });
 
